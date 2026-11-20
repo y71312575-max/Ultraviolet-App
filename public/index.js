@@ -21,9 +21,9 @@ const error = document.getElementById("uv-error");
 const errorCode = document.getElementById("uv-error-code");
 const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
 
-form.addEventListener("submit", async (event) => {
-	event.preventDefault();
+const wispUrl = "wss://wisp.mercurywork.shop/";
 
+async function initProxy() {
 	try {
 		await registerSW();
 	} catch (err) {
@@ -32,19 +32,28 @@ form.addEventListener("submit", async (event) => {
 		throw err;
 	}
 
-	const url = search(address.value, searchEngine.value);
+	if ((await connection.getTransport()) !== "/epoxy/index.mjs") {
+		await connection.setTransport("/epoxy/index.mjs", [{ wisp: wispUrl }]);
+	}
+}
 
+form.addEventListener("submit", async (event) => {
+	event.preventDefault();
+	await initProxy();
+
+	const url = search(address.value, searchEngine.value);
 	let frame = document.getElementById("uv-frame");
 	frame.style.display = "block";
-	let wispUrl =
-		(location.protocol === "https:" ? "wss" : "ws") +
-		"://" +
-		location.host +
-		"/wisp/";
-	if ((await connection.getTransport()) !== "/epoxy/index.mjs") {
-		await connection.setTransport("/epoxy/index.mjs", [
-			{ wisp: wispUrl },
-		]);
-	}
 	frame.src = __uv$config.prefix + __uv$config.encodeUrl(url);
+});
+
+// Auto-load ?url= passed from ProxyFox's address bar
+window.addEventListener("DOMContentLoaded", async () => {
+	const params = new URLSearchParams(window.location.search);
+	const autoUrl = params.get("url");
+	if (!autoUrl) return;
+
+	await initProxy();
+	const url = search(autoUrl, searchEngine.value);
+	window.location.replace(__uv$config.prefix + __uv$config.encodeUrl(url));
 });
