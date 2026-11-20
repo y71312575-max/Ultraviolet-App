@@ -8,6 +8,7 @@
 	},
 	"scripts": {
 		"start": "node src/index.js",
+		"build": "mkdir -p public/uv public/epoxy public/baremux && cp -rL node_modules/@titaniumnetwork-dev/ultraviolet/dist/. public/uv/ && cp -rL node_modules/@mercuryworkshop/epoxy-transport/dist/. public/epoxy/ && cp -rL node_modules/@mercuryworkshop/bare-mux/dist/. public/baremux/",
 		"format": "prettier --write .",
 		"lint": "eslint ./src/",
 		"lint:fix": "eslint ./src/ --fix"
